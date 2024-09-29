@@ -1,1 +1,1 @@
-123
+npm run deploy
