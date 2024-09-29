@@ -39,7 +39,7 @@ function addFruit() {
         friction: 0.5,
         render: {
             sprite: {
-                texture: `./public/${fruit.name}.png`, // 과일 이미지
+                texture: `./${fruit.name}.png`, // 과일 이미지
                 xScale: fruit.scale || 1,
                 yScale: fruit.scale || 1
             }
@@ -68,11 +68,3 @@ Events.on(engine, 'collisionStart', (event) => {
         }
     }
 });
-
-// 간단한 게임 로직: 주기적으로 중력 변화 같은 요소 추가 가능
-setInterval(() => {
-    if (world.bodies.length > 50) { // 너무 많은 과일이 쌓이지 않도록 제한
-        Composite.clear(world, false); // world 초기화
-        Composite.add(world, walls); // 다시 벽과 바닥 추가
-    }
-}, 10000);
