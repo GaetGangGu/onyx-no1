@@ -1,19 +1,19 @@
-import { Engine, Render, Runner, Bodies, Composite, Body, Events, Collision, World } from 'matter-js';
+import { Engine, Render, Runner, Bodies, Composite, Body, Events, World } from 'matter-js';
 import { FRUITS } from './fruits'; // 과일 정보 (이름, 반지름 등 포함)
 
 // 기본적인 엔진과 렌더 설정
-const engine = Engine.create(); // 물리 엔진 생성
-const world = engine.world; // 엔진에서 월드 참조
+const engine = Engine.create();
+const world = engine.world;
 
 // 렌더러 설정
 const render = Render.create({
-    element: document.body, // 렌더할 HTML 요소 (body에 렌더링)
-    engine: engine, // 사용할 엔진
+    element: document.body,
+    engine: engine,
     options: {
-        width: 620, // 렌더링 너비
-        height: 850, // 렌더링 높이
-        background: '#F7F4C8', // 배경 색상
-        wireframes: false // 물리 엔진을 와이어프레임으로 표시할지 여부
+        width: 620,
+        height: 850,
+        background: '#F7F4C8',
+        wireframes: false
     }
 });
 
@@ -32,43 +32,62 @@ const walls = [
 // 센서 역할을 하는 상단 라인 (충돌 감지용)
 const topLine = Bodies.rectangle(310, 150, 620, 2, { 
     isStatic: true, 
-    isSensor: true, // 센서로 설정하여 충돌 감지만 수행
+    isSensor: true,
     render: { fillStyle: '#E6B143' }
 });
 
 // 월드에 벽과 센서 추가
 Composite.add(world, [...walls, topLine]);
 
+// 다음 과일과 다다음 과일 예고용 변수
+let nextFruitIndex = Math.floor(Math.floor(Math.random() * 4));
+let afterNextFruitIndex = Math.floor(Math.floor(Math.random() * 4));
+
+// 다음 과일과 다다음 과일을 예고하는 칸을 업데이트하는 함수
+function updateFruitPreviews() {
+    const nextFruit = FRUITS[nextFruitIndex];
+    const afterNextFruit = FRUITS[afterNextFruitIndex];
+
+    document.getElementById('next-fruit').src = `./${nextFruit.name}.png`;
+    document.getElementById('after-next-fruit').src = `./${afterNextFruit.name}.png`;
+}
+
+// 게임 시작 시 초기 과일 예고 업데이트
+updateFruitPreviews();
+
 // 과일 추가 함수: topLine 위쪽에서만 과일을 추가하는 함수
 function addFruit(x, y) {
-    const minIndex = 0; // 최소 인덱스 (첫 번째 과일)
-    const maxIndex = 4; // 최대 인덱스 (4번까지 나옴)
-
-    // 랜덤 인덱스를 통해 과일 선택
-    const randomIndex = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
-    const fruit = FRUITS[randomIndex]; // 과일 데이터 가져오기
+    const fruit = FRUITS[nextFruitIndex]; // nextFruitIndex에 해당하는 과일 가져오기
 
     // 과일이 topLine 위에서만 생성되도록 y 좌표 제한
-    const spawnY = Math.min(y, topLine.position.y - fruit.radius); // y는 topLine 위로만
+    const spawnY = Math.min(y, topLine.position.y - fruit.radius);
 
     // 과일의 물리적 바디 생성
     const fruitBody = Bodies.circle(x, spawnY, fruit.radius, {
-        index: randomIndex, // 해당 과일의 인덱스 저장
-        density: 0.001, // 밀도 설정
-        restitution: 0.6, // 탄성 설정 (튕김 정도)
-        friction: 0.5, // 마찰력 설정
+        index: nextFruitIndex, // 과일의 인덱스 저장
+        density: 0.001,
+        restitution: 0.6,
+        friction: 0.5,
         render: {
             sprite: {
-                texture: `./${fruit.name}.png`, // 과일 이미지 텍스처
-                xScale: fruit.scale || 1, // 이미지 스케일 조정 (기본값 1)
-                yScale: fruit.scale || 1 // 이미지 스케일 조정 (기본값 1)
+                texture: `./${fruit.name}.png`,
+                xScale: fruit.scale || 1,
+                yScale: fruit.scale || 1
             }
         }
     });
 
     // 월드에 과일 추가
     Composite.add(world, fruitBody);
+
+    // 예고된 과일 업데이트: nextFruit을 afterNextFruit으로 대체하고 새로운 랜덤 과일을 예고
+    nextFruitIndex = afterNextFruitIndex; // 다다음 과일을 다음 과일로 변경
+    afterNextFruitIndex = Math.floor(Math.random() * 4); // 새로운 다다음 과일 예고 (0부터 3까지 범위)
+
+    // 과일 예고 업데이트
+    updateFruitPreviews();
 }
+
 
 // 클릭한 위치에 과일 추가하는 이벤트 리스너
 document.addEventListener('click', (event) => {
@@ -97,29 +116,28 @@ Events.on(engine, 'collisionStart', (event) => {
             // 충돌된 두 과일 제거
             World.remove(world, [bodyA, bodyB]);
 
-// 새로운 과일 생성 (다음 단계 과일)
-const newFruit = FRUITS[index + 1];
+            // 새로운 과일 생성 (다음 단계 과일)
+            const newFruit = FRUITS[index + 1];
 
-const newBody = Bodies.circle(
-    // 충돌 지점의 X 좌표는 그대로, Y 좌표는 충돌 지점보다 화면 높이의 2% 위로
-    (bodyA.position.x + bodyB.position.x) / 2, // X 좌표
-    (bodyA.position.y + bodyB.position.y) / 2, // Y 좌표에 상대적 오프셋 적용
-    newFruit.radius,
-    {
-        render: {
-            sprite: {
-                texture: `./${newFruit.name}.png`, // 새로운 과일 이미지 텍스처
-                xScale: newFruit.scale || 1, // 새로운 과일 스케일 조정
-                yScale: newFruit.scale || 1
-            }
-        },
-        index: index + 1, // 새로운 과일의 인덱스 (다음 단계)
-    }
-);
+            const newBody = Bodies.circle(
+                // 충돌 지점의 X 좌표는 그대로, Y 좌표는 충돌 지점보다 화면 높이의 2% 위로
+                (bodyA.position.x + bodyB.position.x) / 2, // X 좌표
+                (bodyA.position.y + bodyB.position.y) / 2, // Y 좌표
+                newFruit.radius,
+                {
+                    render: {
+                        sprite: {
+                            texture: `./${newFruit.name}.png`, // 새로운 과일 이미지 텍스처
+                            xScale: newFruit.scale || 1,
+                            yScale: newFruit.scale || 1
+                        }
+                    },
+                    index: index + 1, // 새로운 과일의 인덱스 (다음 단계)
+                }
+            );
 
-// 새로운 과일 월드에 추가
-World.add(world, newBody);
-
+            // 새로운 과일 월드에 추가
+            World.add(world, newBody);
         }
     });
 });
