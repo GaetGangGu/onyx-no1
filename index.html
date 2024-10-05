@@ -2,11 +2,34 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Vite App</title>
-    <script type="module" crossorigin src="/onyx-no1/assets/index-ClOso7oe.js"></script>
+    <style>
+      #next-fruits {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 10px;
+      }
+
+      #next-fruits img {
+        width: 80px; /* 과일 이미지 크기 조정 */
+        height: 80px;
+        object-fit: contain;
+      }
+    </style>
+    <script type="module" crossorigin src="/onyx-no1/assets/index-G6A4DhMG.js"></script>
   </head>
   <body>
     <div id="app"></div>
+    <div id="next-fruits">
+      <div>
+        <p>Next Fruit:</p>
+        <img id="next-fruit" src="" alt="Next fruit" />
+      </div>
+      <div>
+        <p>After Next Fruit:</p>
+        <img id="after-next-fruit" src="" alt="After next fruit" />
+      </div>
+    </div>
   </body>
 </html>
